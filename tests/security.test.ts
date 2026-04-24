@@ -88,3 +88,26 @@ test("security §6 — unsupported alg value fails schema validation", async () 
   const r = await verify(tampered, SAMPLE_BODY);
   expect(r.ok).toBe(false);
 });
+
+test("security §6 — hard-expired manifest is rejected by default", async () => {
+  const m = await build(SAMPLE_BODY, {
+    producer_did: testDid,
+    schema_uri: "https://example.org/schemas/test",
+    media_type: "application/octet-stream",
+    created_at: FIXED_TIMESTAMP,
+    retention: { expires_at: "2000-01-01T00:00:00Z" },
+    signers: [makeSigner(testPriv, testDid)],
+  });
+  const r = await verify(m, SAMPLE_BODY);
+  expect(r.ok).toBe(false);
+});
+
+// SPEC §6 bullet: "Size limits are not normative; transports MAY enforce their own."
+// The library therefore accepts any size; this is documented, not enforced.
+test.skip("security §6 — size limits are non-normative (documented in SPEC)", () => {});
+
+// SPEC §6 bullet: "Signer key rotation follows agent-id rules; verifiers MUST resolve
+// signer keys at created_at, not 'now'." In v0.1 we ship did:key only; did:key has no
+// rotation (the DID *is* the key), so this bullet is vacuously satisfied. When did:web
+// lands in v0.2, this test becomes meaningful.
+test.skip("security §6 — key rotation (moot for did:key-only v0.1)", () => {});
