@@ -13,6 +13,8 @@ jobs:
         with:
           bun-version: latest
       - run: bun install --frozen-lockfile
+      - run: bun run check
+      - run: bunx tsc --noEmit -p tsconfig.json
       - run: bun test
       - run: bun run conformance
       - run: bun run demo

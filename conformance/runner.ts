@@ -1,12 +1,12 @@
-import { readdir, readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import * as ed from "@noble/ed25519";
 import { sha512 } from "@noble/hashes/sha512";
 import { build } from "../src/build";
-import { verify, verifyChain } from "../src/verify";
-import { pubkeyToDidKey } from "../src/did";
 import { canonicalEncode } from "../src/canonical";
+import { pubkeyToDidKey } from "../src/did";
 import type { BuildOpts, Manifest } from "../src/types";
+import { verify, verifyChain } from "../src/verify";
 
 ed.etc.sha512Sync = (...m) => sha512(ed.etc.concatBytes(...m));
 
@@ -68,9 +68,7 @@ async function runBuild(input: BuildInput): Promise<{ manifest: Manifest; body: 
   const pub = ed.getPublicKey(priv);
   const producerDid = pubkeyToDidKey(pub);
 
-  const signers: BuildOpts["signers"] = [
-    { did: producerDid, signFn: (b) => ed.sign(b, priv) },
-  ];
+  const signers: BuildOpts["signers"] = [{ did: producerDid, signFn: (b) => ed.sign(b, priv) }];
   for (const s of input.extra_signers ?? []) {
     const sp = hexToBytes(s.priv_hex);
     const sd = pubkeyToDidKey(ed.getPublicKey(sp));
@@ -110,7 +108,10 @@ async function runVector(v: Vector): Promise<{ pass: boolean; detail: string }> 
       const found = r.errors.some((e) => e.includes(v.expected.error_contains));
       return found
         ? { pass: true, detail: `errors=${r.errors.join(";")}` }
-        : { pass: false, detail: `want error containing "${v.expected.error_contains}", got ${r.errors.join(";")}` };
+        : {
+            pass: false,
+            detail: `want error containing "${v.expected.error_contains}", got ${r.errors.join(";")}`,
+          };
     }
     case "parent_chain": {
       const built = [];
@@ -126,14 +127,20 @@ async function runVector(v: Vector): Promise<{ pass: boolean; detail: string }> 
         const link = chain[idx];
         if (!link) return { pass: false, detail: `tamper index ${idx} out of range` };
         const m = link.manifest as Manifest;
-        chain[idx] = { manifest: { ...m, sigs: [{ ...m.sigs[0]!, sig: "AAAA" }] }, bytes: link.bytes };
+        chain[idx] = {
+          manifest: { ...m, sigs: [{ ...m.sigs[0]!, sig: "AAAA" }] },
+          bytes: link.bytes,
+        };
       }
       const r = await verifyChain(chain);
       if (r.ok !== false) return { pass: false, detail: "verifyChain unexpectedly returned ok" };
       const found = r.errors.some((e) => e.includes(v.expected.error_contains));
       return found
         ? { pass: true, detail: `errors=${r.errors.join(";")}` }
-        : { pass: false, detail: `want error containing "${v.expected.error_contains}", got ${r.errors.join(";")}` };
+        : {
+            pass: false,
+            detail: `want error containing "${v.expected.error_contains}", got ${r.errors.join(";")}`,
+          };
     }
     case "canonical": {
       const out = new TextDecoder().decode(canonicalEncode(v.input));

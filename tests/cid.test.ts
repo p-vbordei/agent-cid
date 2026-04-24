@@ -1,4 +1,4 @@
-import { test, expect } from "bun:test";
+import { expect, test } from "bun:test";
 import { bytesToCID, verifyCID } from "../src/cid";
 
 test("bytesToCID returns a CIDv1 base32 string starting with 'bafkrei'", async () => {

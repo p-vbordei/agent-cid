@@ -1,5 +1,5 @@
-import { test, expect } from "bun:test";
-import { pubkeyToDidKey, didKeyToPubkey } from "../src/did";
+import { expect, test } from "bun:test";
+import { didKeyToPubkey, pubkeyToDidKey } from "../src/did";
 
 // A deterministic 32-byte Ed25519 public key (not a real random key — fine for shape tests).
 const PUBKEY = new Uint8Array(32).fill(0xab);

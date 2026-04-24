@@ -1,7 +1,7 @@
-import { test, expect } from "bun:test";
+import { expect, test } from "bun:test";
 import { build } from "../src/build";
 import { ManifestSchema } from "../src/types";
-import { makeSigner, testPriv, testDid, FIXED_TIMESTAMP, SAMPLE_BODY } from "./fixtures";
+import { FIXED_TIMESTAMP, SAMPLE_BODY, makeSigner, testDid, testPriv } from "./fixtures";
 
 test("build produces a schema-valid manifest with one signer", async () => {
   const m = await build(SAMPLE_BODY, {

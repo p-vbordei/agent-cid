@@ -1,14 +1,14 @@
-import { test, expect } from "bun:test";
+import { expect, test } from "bun:test";
 import { build } from "../src/build";
 import { verify } from "../src/verify";
 import {
-  makeSigner,
-  testPriv,
-  testPriv2,
-  testDid,
-  testDid2,
   FIXED_TIMESTAMP,
   SAMPLE_BODY,
+  makeSigner,
+  testDid,
+  testDid2,
+  testPriv,
+  testPriv2,
 } from "./fixtures";
 
 async function buildOne(signerList = [makeSigner(testPriv, testDid)]) {
@@ -42,7 +42,10 @@ test("verify returns size mismatch when byte length changes", async () => {
   longer.set(SAMPLE_BODY);
   const r = await verify(m, longer);
   expect(r.ok).toBe(false);
-  if (!r.ok) expect(r.errors.some((e) => e.includes("size mismatch") || e.includes("cid mismatch"))).toBe(true);
+  if (!r.ok)
+    expect(r.errors.some((e) => e.includes("size mismatch") || e.includes("cid mismatch"))).toBe(
+      true,
+    );
 });
 
 test("verify rejects a schema-malformed manifest", async () => {
@@ -61,7 +64,8 @@ test("verify accepts a two-signer manifest", async () => {
 test("verify fails when one of several signatures is swapped", async () => {
   const m = await buildOne([makeSigner(testPriv, testDid), makeSigner(testPriv2, testDid2)]);
   // Tamper sig[1].sig (base64 swap the first char so decoded bytes differ).
-  const badSig = m.sigs[1]!.sig[0] === "A" ? `B${m.sigs[1]!.sig.slice(1)}` : `A${m.sigs[1]!.sig.slice(1)}`;
+  const badSig =
+    m.sigs[1]?.sig[0] === "A" ? `B${m.sigs[1]?.sig.slice(1)}` : `A${m.sigs[1]?.sig.slice(1)}`;
   const tampered = { ...m, sigs: [m.sigs[0]!, { ...m.sigs[1]!, sig: badSig }] };
   const r = await verify(tampered, SAMPLE_BODY);
   expect(r.ok).toBe(false);

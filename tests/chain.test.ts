@@ -1,7 +1,7 @@
-import { test, expect } from "bun:test";
+import { expect, test } from "bun:test";
 import { build } from "../src/build";
 import { verifyChain } from "../src/verify";
-import { makeSigner, testPriv, testDid, FIXED_TIMESTAMP } from "./fixtures";
+import { FIXED_TIMESTAMP, makeSigner, testDid, testPriv } from "./fixtures";
 
 async function buildAt(body: Uint8Array, parent?: string) {
   return build(body, {
@@ -42,7 +42,8 @@ test("verifyChain flags a broken parent_cid link", async () => {
     { manifest: m3, bytes: b3 },
   ]);
   expect(r.ok).toBe(false);
-  if (!r.ok) expect(r.errors.some((e) => e.includes("chain[2]") && e.includes("parent_cid"))).toBe(true);
+  if (!r.ok)
+    expect(r.errors.some((e) => e.includes("chain[2]") && e.includes("parent_cid"))).toBe(true);
 });
 
 test("verifyChain flags a middle link whose signature does not verify", async () => {

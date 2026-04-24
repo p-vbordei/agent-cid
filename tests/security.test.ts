@@ -1,7 +1,7 @@
-import { test, expect } from "bun:test";
+import { expect, test } from "bun:test";
 import { build } from "../src/build";
 import { verify } from "../src/verify";
-import { makeSigner, testPriv, testDid, FIXED_TIMESTAMP, SAMPLE_BODY } from "./fixtures";
+import { FIXED_TIMESTAMP, SAMPLE_BODY, makeSigner, testDid, testPriv } from "./fixtures";
 
 async function buildDefault() {
   return build(SAMPLE_BODY, {
@@ -55,7 +55,10 @@ test("security §6 — mutating parent_cid invalidates the signature", async () 
     parent_cid: parent.cid,
     signers: [makeSigner(testPriv, testDid)],
   });
-  const mutated = { ...child, parent_cid: "bafkreiimpostor0000000000000000000000000000000000000000" };
+  const mutated = {
+    ...child,
+    parent_cid: "bafkreiimpostor0000000000000000000000000000000000000000",
+  };
   const r = await verify(mutated, body2);
   expect(r.ok).toBe(false);
 });
@@ -64,10 +67,7 @@ test("security §6 — adding an unsigned sig entry causes verify to fail on tha
   const m = await buildDefault();
   const tampered = {
     ...m,
-    sigs: [
-      ...m.sigs,
-      { signer_did: "did:key:z6MkForger", alg: "ed25519" as const, sig: "AAAA" },
-    ],
+    sigs: [...m.sigs, { signer_did: "did:key:z6MkForger", alg: "ed25519" as const, sig: "AAAA" }],
   };
   const r = await verify(tampered, SAMPLE_BODY);
   expect(r.ok).toBe(false);

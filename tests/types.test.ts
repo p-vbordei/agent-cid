@@ -1,4 +1,4 @@
-import { test, expect } from "bun:test";
+import { expect, test } from "bun:test";
 import { ManifestSchema } from "../src/types";
 
 test("ManifestSchema accepts a minimal valid manifest", () => {

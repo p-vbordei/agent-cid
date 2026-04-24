@@ -1,5 +1,5 @@
-import { base58btc } from "multiformats/bases/base58";
 import { varint } from "multiformats";
+import { base58btc } from "multiformats/bases/base58";
 
 // Multicodec: Ed25519 public key is 0xed (unsigned varint).
 const ED25519_MULTICODEC = 0xed;

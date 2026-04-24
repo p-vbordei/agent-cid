@@ -1,7 +1,7 @@
-import { test, expect } from "bun:test";
+import { expect, test } from "bun:test";
 import { build } from "../src/build";
 import { verify } from "../src/verify";
-import { makeSigner, testPriv, testDid, FIXED_TIMESTAMP, SAMPLE_BODY } from "./fixtures";
+import { FIXED_TIMESTAMP, SAMPLE_BODY, makeSigner, testDid, testPriv } from "./fixtures";
 
 const NOW = Date.parse("2026-06-01T00:00:00.000Z");
 
