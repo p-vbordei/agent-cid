@@ -68,3 +68,35 @@ export async function verify(
   if (errors.length === 0) return { ok: true, warnings };
   return { ok: false, errors, warnings };
 }
+
+export async function verifyChain(
+  chain: Array<{ manifest: unknown; bytes: Uint8Array }>,
+  options: VerifyOptions = {},
+): Promise<VerifyResult> {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+  let prevCid: string | undefined;
+
+  for (let i = 0; i < chain.length; i++) {
+    const link = chain[i]!;
+    const r = await verify(link.manifest, link.bytes, options);
+    for (const w of r.warnings) warnings.push(`chain[${i}]: ${w}`);
+    if (!r.ok) {
+      for (const e of r.errors) errors.push(`chain[${i}]: ${e}`);
+    }
+    const parsed = ManifestSchema.safeParse(link.manifest);
+    if (parsed.success) {
+      if (i > 0) {
+        if (parsed.data.parent_cid !== prevCid) {
+          errors.push(
+            `chain[${i}]: parent_cid mismatch — expected ${prevCid}, got ${parsed.data.parent_cid ?? "<missing>"}`,
+          );
+        }
+      }
+      prevCid = parsed.data.cid;
+    }
+  }
+
+  if (errors.length === 0) return { ok: true, warnings };
+  return { ok: false, errors, warnings };
+}

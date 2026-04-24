@@ -1,5 +1,5 @@
 export { build } from "./build";
-export { verify } from "./verify";
+export { verify, verifyChain } from "./verify";
 export { pubkeyToDidKey, didKeyToPubkey } from "./did";
 export { ManifestSchema } from "./types";
 export type {
