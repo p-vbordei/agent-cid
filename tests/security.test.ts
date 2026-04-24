@@ -45,7 +45,6 @@ test("security §6 — mutating media_type invalidates the signature", async () 
 });
 
 test("security §6 — mutating parent_cid invalidates the signature", async () => {
-  const body1 = new TextEncoder().encode("v1");
   const body2 = new TextEncoder().encode("v2");
   const parent = await buildDefault();
   const child = await build(body2, {
