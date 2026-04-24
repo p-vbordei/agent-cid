@@ -43,10 +43,7 @@ export type BuildOpts = {
   created_at?: string;
 };
 
-export type DidResolver = (did: string) => Promise<Uint8Array> | Uint8Array;
-
 export type VerifyOptions = {
-  resolver?: DidResolver;
   ignoreExpiry?: boolean;
   now?: number;
 };

@@ -1,23 +1,24 @@
-import { test, expect } from "bun:test";
-import { signBytes, verifyBytes, b64encode, b64decode } from "../src/sign";
-import { testPriv, testPub, testPriv2 } from "./fixtures";
+import { expect, test } from "bun:test";
+import * as ed from "@noble/ed25519";
+import { b64decode, b64encode, verifyBytes } from "../src/sign";
+import { testPriv, testPriv2, testPub } from "./fixtures";
 
-test("signBytes + verifyBytes roundtrip succeeds with matching key", () => {
+test("verifyBytes accepts a signature from the matching key", () => {
   const msg = new TextEncoder().encode("hello");
-  const sig = signBytes(msg, testPriv);
+  const sig = ed.sign(msg, testPriv);
   expect(verifyBytes(sig, msg, testPub)).toBe(true);
 });
 
-test("verifyBytes fails when the message is mutated", () => {
+test("verifyBytes rejects a signature when the message is mutated", () => {
   const msg = new TextEncoder().encode("hello");
-  const sig = signBytes(msg, testPriv);
+  const sig = ed.sign(msg, testPriv);
   const tampered = new TextEncoder().encode("hellp");
   expect(verifyBytes(sig, tampered, testPub)).toBe(false);
 });
 
-test("verifyBytes fails when the signature is from a different key", () => {
+test("verifyBytes rejects a signature from a different key", () => {
   const msg = new TextEncoder().encode("hello");
-  const sig = signBytes(msg, testPriv2);
+  const sig = ed.sign(msg, testPriv2);
   expect(verifyBytes(sig, msg, testPub)).toBe(false);
 });
 
