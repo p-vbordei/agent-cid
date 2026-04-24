@@ -94,14 +94,12 @@ None outright cut. Every deferred item has a plausible v0.2 caller.
 
 Validation target: ~600–900 LoC TS runtime + ~300 LoC fixtures. This scope fits.
 
-## Dependencies (runtime)
+## Dependencies (runtime, as-shipped)
 
-- `multiformats` — CIDv1 + sha-256 multihash
+- `multiformats` — CIDv1 + sha-256 multihash + base58btc + varint (also powers the inline did:key codec)
 - `@noble/ed25519` — Ed25519 sign/verify
-- `@noble/hashes` — sha-256 (used by multiformats helpers; also direct)
+- `@noble/hashes` — sha512 for Ed25519 sync sign/verify
 - `canonicalize` — RFC 8785 JCS
-- `did-resolver` — abstract DID resolution
-- `key-did-resolver` — did:key method
 - `zod` — runtime schema validation
 
-No HTTP, no database, no framework.
+No HTTP, no database, no framework. The plan originally budgeted `did-resolver` + `key-did-resolver`; v0.1 inlined a ~15-line did:key encoder/decoder using `multiformats`' base58btc + varint instead (we only need one DID method), dropping both packages.
