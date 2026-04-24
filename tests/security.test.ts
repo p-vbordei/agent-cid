@@ -60,3 +60,31 @@ test("security §6 — mutating parent_cid invalidates the signature", async () 
   const r = await verify(mutated, body2);
   expect(r.ok).toBe(false);
 });
+
+test("security §6 — adding an unsigned sig entry causes verify to fail on that entry", async () => {
+  const m = await buildDefault();
+  const tampered = {
+    ...m,
+    sigs: [
+      ...m.sigs,
+      { signer_did: "did:key:z6MkForger", alg: "ed25519" as const, sig: "AAAA" },
+    ],
+  };
+  const r = await verify(tampered, SAMPLE_BODY);
+  expect(r.ok).toBe(false);
+  if (!r.ok) expect(r.errors.some((e) => e.includes("sigs[1]"))).toBe(true);
+});
+
+test("security §6 — removing the sole sig entry fails schema validation", async () => {
+  const m = await buildDefault();
+  const tampered = { ...m, sigs: [] };
+  const r = await verify(tampered, SAMPLE_BODY);
+  expect(r.ok).toBe(false);
+});
+
+test("security §6 — unsupported alg value fails schema validation", async () => {
+  const m = await buildDefault();
+  const tampered = { ...m, sigs: [{ ...m.sigs[0]!, alg: "rsa-sha256" as unknown as "ed25519" }] };
+  const r = await verify(tampered, SAMPLE_BODY);
+  expect(r.ok).toBe(false);
+});
