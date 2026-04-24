@@ -10,7 +10,38 @@ If MCP tells you how to call a tool and `agent-scroll` tells you what was said, 
 
 ## Status
 
-**0.0 — design phase.** Draft spec in [SPEC.md](./SPEC.md). No code yet.
+**0.1.0.** Normative spec in [SPEC.md](./SPEC.md). TypeScript reference impl in [`src/`](./src/). Conformance vectors in [`conformance/`](./conformance/).
+
+## Quickstart
+
+```sh
+bun install
+bun test
+bun run demo
+```
+
+What you should see: `bun run demo` builds a manifest, verifies it, tampers one byte and shows the verify failure, then rolls a v2 with `parent_cid` pointing at v1.
+
+## Using as a library
+
+```ts
+import { build, verify, pubkeyToDidKey } from "agent-cid";
+import * as ed from "@noble/ed25519";
+import { sha512 } from "@noble/hashes/sha512";
+ed.etc.sha512Sync = (...m) => sha512(ed.etc.concatBytes(...m));
+
+const priv = ed.utils.randomPrivateKey();
+const did = pubkeyToDidKey(ed.getPublicKey(priv));
+
+const body = new TextEncoder().encode(JSON.stringify({ answer: 42 }));
+const manifest = await build(body, {
+  producer_did: did,
+  schema_uri: "https://example.org/answer/1",
+  media_type: "application/json",
+  signers: [{ did, signFn: (b) => ed.sign(b, priv) }],
+});
+const result = await verify(manifest, body); // { ok: true, warnings: [] }
+```
 
 ## The gap
 
