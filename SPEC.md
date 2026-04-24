@@ -1,6 +1,6 @@
-# agent-cid — v0.1 specification (DRAFT)
+# agent-cid — v1.0 specification
 
-**Status:** draft, not yet implemented.
+**Status:** 1.0 — 2026-04-24. Reference implementation: this repo (`src/`). Conformance vectors: [`conformance/`](./conformance/).
 
 ## Abstract
 
