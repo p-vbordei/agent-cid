@@ -1,0 +1,30 @@
+{
+  "name": "agent-cid",
+  "version": "0.1.0",
+  "description": "Content-addressed artifact manifest for inter-agent artifact exchange.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "bun test",
+    "conformance": "bun conformance/runner.ts",
+    "demo": "bun examples/demo.ts",
+    "check": "biome check .",
+    "format": "biome format --write ."
+  },
+  "dependencies": {
+    "@noble/ed25519": "^2.3.0",
+    "@noble/hashes": "^1.6.0",
+    "canonicalize": "^2.0.0",
+    "multiformats": "^13.3.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@types/bun": "latest",
+    "typescript": "^5.6.3"
+  }
+}
