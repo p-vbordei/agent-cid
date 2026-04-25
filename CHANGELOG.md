@@ -2,6 +2,23 @@
 
 All notable changes to this project follow [Keep a Changelog](https://keepachangelog.com/) and [Semantic Versioning](https://semver.org/).
 
+## [0.2.0] — 2026-04-25
+
+`did:web` support, no wire-format changes.
+
+### Added
+- `did:web` resolution: `verify()` auto-dispatches did:key → inline codec; did:web → HTTPS fetch of `.well-known/did.json` (or custom path), 5-second timeout, 64 KiB cap, HTTPS-only.
+- `DidResolver` type re-introduced (now justified by 2 real callers); `VerifyOptions.resolver` accepts a custom resolver for tests or non-default DID methods.
+- `VerifyOptions.resolverCache` (default `true`) — 5-minute in-memory pubkey cache.
+- `VerifyOptions.resolverTimeoutMs` (default `5000`) — fetch timeout for did:web.
+- `didWebToUrl(did)` and `parseEd25519FromDidDoc(doc, did)` exposed for users implementing custom resolvers or building their own caches.
+- `fetchDidWebPubkey(did, opts?)` for bypassing the default resolver entirely.
+- Conformance vector C5: did:web roundtrip with embedded DID document.
+
+### Notes
+- Wire-format unchanged. Every v0.1.0 manifest verifies under v0.2 unchanged.
+- Historical-key-at-`created_at` resolution still deferred (v0.3+).
+
 ## [0.1.0] — 2026-04-24
 
 Initial release. See [SPEC.md](./SPEC.md) for the normative specification.

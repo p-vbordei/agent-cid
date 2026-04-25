@@ -96,6 +96,14 @@ A new artifact version points at its predecessor via `parent_cid`. Verifiers MAY
 - **Parent-chain trust** is transitive only if every manifest in the chain verifies. A revoked middle signer breaks the chain; policy on how to handle revocation is left to the application.
 - **Size limits** are not normative; transports MAY enforce their own.
 
+For `did:web` (added in v0.2):
+
+- **HTTPS-only.** Verifiers MUST reject `http://` URLs derived from `did:web:`.
+- **Response size cap.** Verifiers SHOULD enforce a maximum DID document size (default 64 KiB) to prevent resource exhaustion.
+- **Fetch timeout.** Verifiers SHOULD enforce a fetch timeout (default 5 s).
+- **Cache freshness.** A pubkey cache MAY be used; default TTL is 5 minutes. Verifiers MUST NOT cache the verification result, only the pubkey. Callers needing strict freshness pass `resolverCache: false`.
+- **Historical key resolution at `created_at`** is NOT YET supported in v0.2 (current key only). This will land in v0.3 alongside `agent-id`'s rotation history protocol.
+
 ## 7. Conformance
 
 A conforming implementation MUST:

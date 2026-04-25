@@ -43,6 +43,22 @@ const manifest = await build(body, {
 const result = await verify(manifest, body); // { ok: true, warnings: [] }
 ```
 
+### did:web
+
+When the producer is `did:web:` instead of `did:key:`, `verify()` automatically fetches the DID document from the well-known URL (HTTPS-only, 5-second timeout, 64 KiB cap) and caches the resolved pubkey for 5 minutes. Override the resolver for tests or custom DID methods:
+
+```ts
+const r = await verify(manifest, body, {
+  resolver: (did) => myCustomDidResolver(did),
+});
+```
+
+Bypass the cache when you need strict freshness:
+
+```ts
+const r = await verify(manifest, body, { resolverCache: false });
+```
+
 ## The gap
 
 `multiformats` defines the CID (the identifier). IPLD defines graphs. OCI image manifests describe container layer graphs. SigStore cosign bundles anchor signatures to X.509. SLSA provenance describes what built what. UCAN describes capabilities. KAF (Kindred Artifact Format) describes Kindred-specific artifacts.
