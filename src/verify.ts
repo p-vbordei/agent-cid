@@ -12,12 +12,32 @@ const builtinResolver: DidResolver = async (did) => {
   throw new Error(`unsupported DID method: ${did}`);
 };
 
+const RESOLVER_CACHE_TTL_MS = 5 * 60 * 1000;
+const resolverCache = new Map<string, { pubkey: Uint8Array; expires: number }>();
+
+// Test-only — exported for unit tests to reset state between cases.
+export function __resetResolverCache(): void {
+  resolverCache.clear();
+}
+
+function withCache(inner: DidResolver, ttlMs: number = RESOLVER_CACHE_TTL_MS): DidResolver {
+  return async (did) => {
+    const now = Date.now();
+    const hit = resolverCache.get(did);
+    if (hit && hit.expires > now) return hit.pubkey;
+    const pubkey = await inner(did);
+    resolverCache.set(did, { pubkey, expires: now + ttlMs });
+    return pubkey;
+  };
+}
+
 export async function verify(
   manifest: unknown,
   bytes: Uint8Array,
   options: VerifyOptions = {},
 ): Promise<VerifyResult> {
-  const resolver = options.resolver ?? builtinResolver;
+  const baseResolver = options.resolver ?? builtinResolver;
+  const resolver = options.resolverCache === false ? baseResolver : withCache(baseResolver);
   const now = options.now ?? Date.now();
   const errors: string[] = [];
   const warnings: string[] = [];

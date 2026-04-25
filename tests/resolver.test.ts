@@ -4,7 +4,7 @@ import { build } from "../src/build";
 import { pubkeyToDidKey } from "../src/did";
 import { fetchDidWebPubkey } from "../src/did-web";
 import type { DidResolver } from "../src/types";
-import { verify } from "../src/verify";
+import { __resetResolverCache, verify } from "../src/verify";
 import { FIXED_TIMESTAMP, SAMPLE_BODY, makeSigner, testDid, testPriv, testPub } from "./fixtures";
 
 test("verify accepts a custom resolver returning the right pubkey", async () => {
@@ -24,6 +24,7 @@ test("verify accepts a custom resolver returning the right pubkey", async () => 
 });
 
 test("verify with custom resolver returning wrong key fails", async () => {
+  __resetResolverCache();
   const m = await build(SAMPLE_BODY, {
     producer_did: testDid,
     schema_uri: "https://example.org/s/1",
@@ -80,4 +81,44 @@ test("custom resolver delegating to fetchDidWebPubkey verifies a did:web manifes
     resolver: (did) => fetchDidWebPubkey(did, { fetch: stubFetch }),
   });
   expect(r.ok).toBe(true);
+});
+
+test("cached resolver only calls inner once for repeated DIDs", async () => {
+  __resetResolverCache();
+  let calls = 0;
+  const inner: DidResolver = (did) => {
+    calls++;
+    if (did === testDid) return testPub;
+    throw new Error(`unknown DID: ${did}`);
+  };
+  const m = await build(SAMPLE_BODY, {
+    producer_did: testDid,
+    schema_uri: "https://example.org/s/1",
+    media_type: "application/octet-stream",
+    created_at: FIXED_TIMESTAMP,
+    signers: [makeSigner(testPriv, testDid)],
+  });
+  await verify(m, SAMPLE_BODY, { resolver: inner });
+  await verify(m, SAMPLE_BODY, { resolver: inner });
+  expect(calls).toBe(1);
+});
+
+test("resolverCache: false bypasses the cache", async () => {
+  __resetResolverCache();
+  let calls = 0;
+  const inner: DidResolver = (did) => {
+    calls++;
+    if (did === testDid) return testPub;
+    throw new Error(`unknown DID: ${did}`);
+  };
+  const m = await build(SAMPLE_BODY, {
+    producer_did: testDid,
+    schema_uri: "https://example.org/s/1",
+    media_type: "application/octet-stream",
+    created_at: FIXED_TIMESTAMP,
+    signers: [makeSigner(testPriv, testDid)],
+  });
+  await verify(m, SAMPLE_BODY, { resolver: inner, resolverCache: false });
+  await verify(m, SAMPLE_BODY, { resolver: inner, resolverCache: false });
+  expect(calls).toBe(2);
 });
