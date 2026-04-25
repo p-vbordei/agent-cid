@@ -4,7 +4,7 @@ import * as ed from "@noble/ed25519";
 import { sha512 } from "@noble/hashes/sha512";
 import { build } from "../src/build";
 import { canonicalEncode } from "../src/canonical";
-import { pubkeyToDidKey } from "../src/did";
+import { parseEd25519FromDidDoc, pubkeyToDidKey } from "../src/did";
 import type { BuildOpts, Manifest } from "../src/types";
 import { verify, verifyChain } from "../src/verify";
 
@@ -54,6 +54,15 @@ type Vector =
       description: string;
       input: Record<string, unknown>;
       expected_canonical: string;
+    }
+  | {
+      id: string;
+      kind: "did_web_roundtrip";
+      description: string;
+      build: BuildInput;
+      producer_did: string;
+      did_doc: Record<string, unknown>;
+      expected: { verify_ok: true };
     };
 
 function hexToBytes(h: string): Uint8Array {
@@ -147,6 +156,23 @@ async function runVector(v: Vector): Promise<{ pass: boolean; detail: string }> 
       return out === v.expected_canonical
         ? { pass: true, detail: `${out.length} bytes` }
         : { pass: false, detail: `\ngot:  ${out}\nwant: ${v.expected_canonical}` };
+    }
+    case "did_web_roundtrip": {
+      const body = hexToBytes(v.build.body_hex);
+      const priv = hexToBytes(v.build.producer_priv_hex);
+      const manifest = await build(body, {
+        producer_did: v.producer_did,
+        schema_uri: v.build.schema_uri,
+        media_type: v.build.media_type,
+        created_at: v.build.created_at,
+        signers: [{ did: v.producer_did, signFn: (b) => ed.sign(b, priv) }],
+      });
+      const r = await verify(manifest, body, {
+        resolver: (did) => parseEd25519FromDidDoc(v.did_doc, did),
+      });
+      return r.ok === v.expected.verify_ok
+        ? { pass: true, detail: `cid=${manifest.cid}` }
+        : { pass: false, detail: `verify.ok = ${r.ok}, want ${v.expected.verify_ok}` };
     }
   }
 }
