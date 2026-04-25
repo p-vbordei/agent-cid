@@ -1,12 +1,14 @@
 import { canonicalEncode } from "./canonical";
 import { verifyCID } from "./cid";
 import { didKeyToPubkey } from "./did";
+import { fetchDidWebPubkey } from "./did-web";
 import { b64decode, verifyBytes } from "./sign";
 import { ManifestSchema } from "./types";
 import type { DidResolver, VerifyOptions, VerifyResult } from "./types";
 
 const builtinResolver: DidResolver = async (did) => {
   if (did.startsWith("did:key:")) return didKeyToPubkey(did);
+  if (did.startsWith("did:web:")) return fetchDidWebPubkey(did);
   throw new Error(`unsupported DID method: ${did}`);
 };
 

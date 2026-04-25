@@ -1,6 +1,8 @@
 import { expect, test } from "bun:test";
 import * as ed from "@noble/ed25519";
 import { build } from "../src/build";
+import { pubkeyToDidKey } from "../src/did";
+import { fetchDidWebPubkey } from "../src/did-web";
 import type { DidResolver } from "../src/types";
 import { verify } from "../src/verify";
 import { FIXED_TIMESTAMP, SAMPLE_BODY, makeSigner, testDid, testPriv, testPub } from "./fixtures";
@@ -49,4 +51,33 @@ test("default resolver throws on unknown DID method", async () => {
   };
   const r = await verify(bogus, SAMPLE_BODY);
   expect(r.ok).toBe(false);
+});
+
+test("custom resolver delegating to fetchDidWebPubkey verifies a did:web manifest", async () => {
+  const webDid = "did:web:example.com";
+  const TEST_PUB_MB = pubkeyToDidKey(testPub).slice("did:key:".length);
+  const didDoc = {
+    id: webDid,
+    verificationMethod: [
+      {
+        id: `${webDid}#key-1`,
+        type: "Ed25519VerificationKey2020",
+        controller: webDid,
+        publicKeyMultibase: TEST_PUB_MB,
+      },
+    ],
+  };
+  const m = await build(SAMPLE_BODY, {
+    producer_did: webDid,
+    schema_uri: "https://example.org/s/1",
+    media_type: "application/octet-stream",
+    created_at: FIXED_TIMESTAMP,
+    signers: [{ did: webDid, signFn: (b) => ed.sign(b, testPriv) }],
+  });
+  const stubFetch = (async () =>
+    new Response(JSON.stringify(didDoc), { status: 200 })) as unknown as typeof fetch;
+  const r = await verify(m, SAMPLE_BODY, {
+    resolver: (did) => fetchDidWebPubkey(did, { fetch: stubFetch }),
+  });
+  expect(r.ok).toBe(true);
 });
