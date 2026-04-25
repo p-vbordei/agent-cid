@@ -45,3 +45,25 @@ export function didWebToUrl(did: string): string {
   const pathPart = rest.length === 0 ? "/.well-known/did.json" : `/${rest.join("/")}/did.json`;
   return `https://${host}${pathPart}`;
 }
+
+type VerificationMethod = {
+  id: string;
+  type: string;
+  controller?: string;
+  publicKeyMultibase?: string;
+};
+
+export function parseEd25519FromDidDoc(doc: unknown, signerDid: string): Uint8Array {
+  const methods = (doc as { verificationMethod?: VerificationMethod[] }).verificationMethod;
+  if (!Array.isArray(methods)) throw new Error("DID document has no verificationMethod");
+  for (const m of methods) {
+    const matches = m.controller === signerDid || m.id?.startsWith(`${signerDid}#`);
+    if (!matches) continue;
+    if (m.type !== "Ed25519VerificationKey2020") continue;
+    if (!m.publicKeyMultibase) continue;
+    // publicKeyMultibase uses the same z-prefixed base58btc encoding (with 0xed01 multicodec)
+    // as did:key, so reuse didKeyToPubkey to decode it.
+    return didKeyToPubkey(`did:key:${m.publicKeyMultibase}`);
+  }
+  throw new Error(`no Ed25519 verification method found for ${signerDid}`);
+}
