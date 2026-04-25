@@ -3,13 +3,19 @@ import { verifyCID } from "./cid";
 import { didKeyToPubkey } from "./did";
 import { b64decode, verifyBytes } from "./sign";
 import { ManifestSchema } from "./types";
-import type { VerifyOptions, VerifyResult } from "./types";
+import type { DidResolver, VerifyOptions, VerifyResult } from "./types";
+
+const builtinResolver: DidResolver = async (did) => {
+  if (did.startsWith("did:key:")) return didKeyToPubkey(did);
+  throw new Error(`unsupported DID method: ${did}`);
+};
 
 export async function verify(
   manifest: unknown,
   bytes: Uint8Array,
   options: VerifyOptions = {},
 ): Promise<VerifyResult> {
+  const resolver = options.resolver ?? builtinResolver;
   const now = options.now ?? Date.now();
   const errors: string[] = [];
   const warnings: string[] = [];
@@ -53,7 +59,7 @@ export async function verify(
   for (let i = 0; i < sigs.length; i++) {
     const s = sigs[i]!;
     try {
-      const pub = didKeyToPubkey(s.signer_did);
+      const pub = await resolver(s.signer_did);
       if (!verifyBytes(b64decode(s.sig), canonical, pub)) {
         errors.push(`sigs[${i}]: invalid signature for ${s.signer_did}`);
       }
