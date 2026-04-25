@@ -30,3 +30,18 @@ export function didKeyToPubkey(did: string): Uint8Array {
   }
   return pub;
 }
+
+export function didWebToUrl(did: string): string {
+  if (!did.startsWith("did:web:")) {
+    throw new Error(`not a did:web: ${did}`);
+  }
+  const tail = did.slice("did:web:".length);
+  const parts = tail.split(":").map((p) => decodeURIComponent(p));
+  const [host, ...rest] = parts;
+  if (!host) throw new Error("did:web missing host");
+  if (rest.some((p) => p === "" || p === "." || p === "..")) {
+    throw new Error(`did:web path segment rejected: ${rest.join("/")}`);
+  }
+  const pathPart = rest.length === 0 ? "/.well-known/did.json" : `/${rest.join("/")}/did.json`;
+  return `https://${host}${pathPart}`;
+}
