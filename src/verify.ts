@@ -13,20 +13,34 @@ const builtinResolver: DidResolver = async (did) => {
 };
 
 const RESOLVER_CACHE_TTL_MS = 5 * 60 * 1000;
-const resolverCache = new Map<string, { pubkey: Uint8Array; expires: number }>();
+
+// Per-resolver cache: keyed by the underlying DidResolver function reference, so
+// swapping resolvers between calls does NOT serve a stale entry. The default
+// builtinResolver is a module-scoped const, so all default-resolver verifies
+// share one cache (intended). User-supplied resolvers each get their own cache,
+// collected when the function is.
+let resolverCaches = new WeakMap<
+  DidResolver,
+  Map<string, { pubkey: Uint8Array; expires: number }>
+>();
 
 // Test-only — exported for unit tests to reset state between cases.
 export function __resetResolverCache(): void {
-  resolverCache.clear();
+  resolverCaches = new WeakMap();
 }
 
 function withCache(inner: DidResolver, ttlMs: number = RESOLVER_CACHE_TTL_MS): DidResolver {
   return async (did) => {
+    let cache = resolverCaches.get(inner);
+    if (!cache) {
+      cache = new Map();
+      resolverCaches.set(inner, cache);
+    }
     const now = Date.now();
-    const hit = resolverCache.get(did);
+    const hit = cache.get(did);
     if (hit && hit.expires > now) return hit.pubkey;
     const pubkey = await inner(did);
-    resolverCache.set(did, { pubkey, expires: now + ttlMs });
+    cache.set(did, { pubkey, expires: now + ttlMs });
     return pubkey;
   };
 }

@@ -152,14 +152,12 @@ test("verify rejects a manifest whose signer_did uses an unsupported DID method"
 
 // ─── cache — cross-resolver pollution ───────────────────────────────────────
 
-test("documented behaviour: cache is process-global; two resolvers for the same DID share an entry", async () => {
-  // This documents a known limitation rather than asserting "correct" behaviour:
-  // since the cache is module-scoped and keyed by DID alone, swapping resolvers
-  // between calls does NOT invalidate the cache. Users needing isolation pass
-  // resolverCache: false. If we ever scope the cache per-resolver, this test
-  // will start failing — that's the intended signal.
+test("cache is scoped per-resolver: a different resolver for the same DID is NOT served from cache", async () => {
+  // The cache is keyed by the underlying DidResolver function reference (WeakMap),
+  // so swapping resolvers does not return stale entries. Each resolver gets its
+  // own DID→pubkey map; the wrong resolver IS invoked and returns its own key.
   __resetResolverCache();
-  const body = new TextEncoder().encode("cache-pollution");
+  const body = new TextEncoder().encode("cache-isolation");
   const m = await build(body, {
     producer_did: testDid,
     schema_uri: "https://example.org/s",
@@ -167,20 +165,20 @@ test("documented behaviour: cache is process-global; two resolvers for the same 
     created_at: FIXED_TIMESTAMP,
     signers: [makeSigner(testPriv, testDid)],
   });
-  // First call: resolver returns the correct key.
+  // First call: resolver returns the correct key. Cache populates under correctResolver.
   const correctResolver: DidResolver = () => testPub;
   const r1 = await verify(m, body, { resolver: correctResolver });
   expect(r1.ok).toBe(true);
-  // Second call with a DIFFERENT resolver returning a different key: cache hits with
-  // the stale "correct" key, so verify still passes (and wrongResolver is never called).
+  // Second call with a DIFFERENT resolver returning a different key: cache for
+  // wrongResolver is empty, so wrongResolver IS invoked and the wrong key fails verify.
   let wrongResolverCalls = 0;
   const wrongResolver: DidResolver = () => {
     wrongResolverCalls++;
     return ed.getPublicKey(new Uint8Array(32).fill(0x99));
   };
   const r2 = await verify(m, body, { resolver: wrongResolver });
-  expect(r2.ok).toBe(true); // cache served the stale-but-correct key
-  expect(wrongResolverCalls).toBe(0); // wrongResolver was never invoked
+  expect(r2.ok).toBe(false); // wrongResolver returned the wrong key — sig fails
+  expect(wrongResolverCalls).toBe(1); // wrongResolver IS invoked, separate cache
 });
 
 test("cache: resolverCache: false isolates a wrong-key resolver from a prior cached entry", async () => {
