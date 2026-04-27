@@ -101,7 +101,7 @@ For `did:web` (added in v0.2):
 - **HTTPS-only.** Verifiers MUST reject `http://` URLs derived from `did:web:`.
 - **Response size cap.** Verifiers SHOULD enforce a maximum DID document size (default 64 KiB) to prevent resource exhaustion.
 - **Fetch timeout.** Verifiers SHOULD enforce a fetch timeout (default 5 s).
-- **Cache freshness.** A pubkey cache MAY be used; default TTL is 5 minutes. Verifiers MUST NOT cache the verification result, only the pubkey. Callers needing strict freshness pass `resolverCache: false`.
+- **Cache freshness.** A pubkey cache MAY be used; default TTL is 5 minutes. Verifiers MUST NOT cache the verification result, only the pubkey. Cache scope SHOULD be per-resolver instance, so swapping resolvers (e.g., a test stub vs. the production fetcher) does not return stale entries. Callers needing strict freshness or single-shot resolution pass `resolverCache: false`.
 - **Historical key resolution at `created_at`** is NOT YET supported in v0.2 (current key only). This will land in v0.3 alongside `agent-id`'s rotation history protocol.
 
 ## 7. Conformance

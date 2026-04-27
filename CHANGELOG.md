@@ -2,18 +2,19 @@
 
 All notable changes to this project follow [Keep a Changelog](https://keepachangelog.com/) and [Semantic Versioning](https://semver.org/).
 
-## [0.2.0] — 2026-04-25
+## [0.2.0] — 2026-04-27
 
 `did:web` support, no wire-format changes.
 
 ### Added
 - `did:web` resolution: `verify()` auto-dispatches did:key → inline codec; did:web → HTTPS fetch of `.well-known/did.json` (or custom path), 5-second timeout, 64 KiB cap, HTTPS-only.
 - `DidResolver` type re-introduced (now justified by 2 real callers); `VerifyOptions.resolver` accepts a custom resolver for tests or non-default DID methods.
-- `VerifyOptions.resolverCache` (default `true`) — 5-minute in-memory pubkey cache.
+- `VerifyOptions.resolverCache` (default `true`) — 5-minute in-memory pubkey cache, scoped per-resolver instance via `WeakMap` so swapping resolvers does not return stale entries from a different resolver's cache.
 - `VerifyOptions.resolverTimeoutMs` (default `5000`) — fetch timeout for did:web.
 - `didWebToUrl(did)` and `parseEd25519FromDidDoc(doc, did)` exposed for users implementing custom resolvers or building their own caches.
 - `fetchDidWebPubkey(did, opts?)` for bypassing the default resolver entirely.
 - Conformance vector C5: did:web roundtrip with embedded DID document.
+- Adversarial test sweep (19 cases): did:key multicodec/length boundaries, did:web URL-encoded path-traversal rejection, fetcher error paths, 0-byte body roundtrip, manifest-tamper detection, cache isolation across resolvers.
 
 ### Notes
 - Wire-format unchanged. Every v0.1.0 manifest verifies under v0.2 unchanged.
