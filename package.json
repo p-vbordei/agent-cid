@@ -1,13 +1,42 @@
 {
   "name": "agent-cid",
   "version": "0.2.0",
-  "description": "Content-addressed artifact manifest for inter-agent artifact exchange.",
+  "description": "Content-addressed artifact manifest for inter-agent artifact exchange — CIDv1 + Ed25519 + DID, RFC 8785 JCS canonical encoding.",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts"
   },
+  "files": [
+    "src",
+    "SPEC.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/p-vbordei/agent-cid.git"
+  },
+  "homepage": "https://github.com/p-vbordei/agent-cid#readme",
+  "bugs": {
+    "url": "https://github.com/p-vbordei/agent-cid/issues"
+  },
+  "keywords": [
+    "agent",
+    "cid",
+    "manifest",
+    "ed25519",
+    "did",
+    "did-key",
+    "did-web",
+    "jcs",
+    "rfc8785",
+    "multiformats",
+    "content-addressed",
+    "verifiable"
+  ],
   "scripts": {
     "test": "bun test",
     "conformance": "bun conformance/runner.ts",
