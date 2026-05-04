@@ -11,13 +11,7 @@
   "exports": {
     ".": "./src/index.ts"
   },
-  "files": [
-    "src",
-    "SPEC.md",
-    "CHANGELOG.md",
-    "LICENSE",
-    "README.md"
-  ],
+  "files": ["src", "SPEC.md", "CHANGELOG.md", "LICENSE", "README.md"],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/p-vbordei/agent-cid.git"
