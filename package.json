@@ -1,6 +1,9 @@
 {
-  "name": "agent-cid",
-  "version": "0.2.0",
+  "name": "@p-vbordei/agent-cid",
+  "version": "0.2.1",
+  "publishConfig": {
+    "access": "public"
+  },
   "description": "Content-addressed artifact manifest for inter-agent artifact exchange — CIDv1 + Ed25519 + DID, RFC 8785 JCS canonical encoding.",
   "license": "Apache-2.0",
   "type": "module",
@@ -8,13 +11,7 @@
   "exports": {
     ".": "./src/index.ts"
   },
-  "files": [
-    "src",
-    "SPEC.md",
-    "CHANGELOG.md",
-    "LICENSE",
-    "README.md"
-  ],
+  "files": ["src", "SPEC.md", "CHANGELOG.md", "LICENSE", "README.md"],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/p-vbordei/agent-cid.git"

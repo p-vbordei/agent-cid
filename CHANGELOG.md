@@ -2,6 +2,10 @@
 
 All notable changes to this project follow [Keep a Changelog](https://keepachangelog.com/) and [Semantic Versioning](https://semver.org/).
 
+## [0.2.1] — 2026-04-28
+
+Metadata-only release: npm package renamed from `agent-cid` to `@p-vbordei/agent-cid` now that the `p-vbordei` org exists on npm. No code changes. Install: `npm i @p-vbordei/agent-cid`. The unscoped name was never published.
+
 ## [0.2.0] — 2026-04-27
 
 `did:web` support, no wire-format changes.
